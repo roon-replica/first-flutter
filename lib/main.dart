@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// 여기가 비즈니스 로직 처리하는 부분?
 // 앱의 상태 정의?
 // ChangeNotifier가 앱 상태 관리하는 가장 쉬운 방법이래
 // MyAppState: 앱에 필요한 데이터 정의, 리액트의 useState같은 훅 개념인듯
@@ -37,14 +38,34 @@ class MyAppState extends ChangeNotifier {
     current = WordPair.random();
     notifyListeners();
   }
+
+  // 비즈니스 로직 추가: 좋아요?
+  var favorites = <WordPair>[];
+  void toggleFavorite(){
+    if(favorites.contains(current)){
+      favorites.remove(current);
+    }else{
+      favorites.add(current);
+    }
+    notifyListeners();
+  }
 }
 
+
+// 여기가 UI 처리하는 부분
 class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<
         MyAppState>(); // watch: 변경사항 추적. react-hook-form이랑 비슷. hook 개념으로 보면될듯
     var pair = appState.current;
+
+    IconData icon;
+    if (appState.favorites.contains(pair)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
 
     return Scaffold(
       body: Center( // wrap with center 사용
@@ -53,11 +74,22 @@ class MyHomePage extends StatelessWidget {
           children: [
             BigCard(pair: pair),
             SizedBox(height: 10), // 패딩 용도
-            ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('new words'))
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon( // 아이콘 넣는법..!
+                    onPressed: () {
+                      appState.toggleFavorite();
+                    },
+                    icon: Icon(icon),
+                    label: Text('like')),
+                ElevatedButton(
+                    onPressed: () {
+                      appState.getNext();
+                    },
+                    child: Text('new words')),
+              ],
+            )
           ],
         ),
       ),
