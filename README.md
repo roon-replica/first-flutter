@@ -1,6 +1,6 @@
-# hello world
+# hello world 예제
 
-A new Flutter project.
+- [튜토리얼 하는곳](https://codelabs.developers.google.com/codelabs/flutter-codelab-first?hl=ko#0)
 
 ## Getting Started
 
