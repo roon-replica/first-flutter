@@ -53,11 +53,77 @@ class MyAppState extends ChangeNotifier {
 
 
 // 여기가 UI 처리하는 부분
-class MyHomePage extends StatelessWidget {
+// StatefulWidget으로 변경 - Convert to StatefulWidget 이용
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context){
+    // selectedIndex에 따라 페이지 렌더링!
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        page = Placeholder();
+        break;
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+
+    return LayoutBuilder( // wrap with builder 사용, Nav Rail의 label 표시 여부를 화면 크기에 따라 자동으로 결정할 수 있도록
+      builder: (context, constraints) {
+        return Scaffold(
+          body: Row(
+            children: [
+              SafeArea(
+                child: NavigationRail( // = 사이드 바
+                  extended: constraints.maxWidth >= 600,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value) {
+                    setState(() { // 리액트랑 비슷하네
+                      selectedIndex = value;
+                    });
+
+                    print('selected: $value');
+                  },
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page, // selectedIndex에 따라 다른 페이지 렌더링
+                ),
+              ),
+            ],
+          )
+        );
+      }
+    );
+  }
+}
+
+// MyHomePage 내용이 여기로 추출됨
+class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<
-        MyAppState>(); // watch: 변경사항 추적. react-hook-form이랑 비슷. hook 개념으로 보면될듯
+    var appState = context.watch<MyAppState>();
     var pair = appState.current;
 
     IconData icon;
@@ -67,31 +133,32 @@ class MyHomePage extends StatelessWidget {
       icon = Icons.favorite_border;
     }
 
-    return Scaffold(
-      body: Center( // wrap with center 사용
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // column 중앙 배치
-          children: [
-            BigCard(pair: pair),
-            SizedBox(height: 10), // 패딩 용도
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton.icon( // 아이콘 넣는법..!
-                    onPressed: () {
-                      appState.toggleFavorite();
-                    },
-                    icon: Icon(icon),
-                    label: Text('like')),
-                ElevatedButton(
-                    onPressed: () {
-                      appState.getNext();
-                    },
-                    child: Text('new words')),
-              ],
-            )
-          ],
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          BigCard(pair: pair),
+          SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  appState.toggleFavorite();
+                },
+                icon: Icon(icon),
+                label: Text('Like'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Next'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
