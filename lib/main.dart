@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           colorScheme:
-              ColorScheme.fromSeed(seedColor: Colors.blue), // 암시적 애니메이션?
+          ColorScheme.fromSeed(seedColor: Colors.blue), // 암시적 애니메이션?
         ),
         home: MyHomePage(),
       ),
@@ -41,10 +41,11 @@ class MyAppState extends ChangeNotifier {
 
   // 비즈니스 로직 추가: 좋아요?
   var favorites = <WordPair>[];
-  void toggleFavorite(){
-    if(favorites.contains(current)){
+
+  void toggleFavorite() {
+    if (favorites.contains(current)) {
       favorites.remove(current);
-    }else{
+    } else {
       favorites.add(current);
     }
     notifyListeners();
@@ -63,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     // selectedIndex에 따라 페이지 렌더링!
     Widget page;
     switch (selectedIndex) {
@@ -71,50 +72,53 @@ class _MyHomePageState extends State<MyHomePage> {
         page = GeneratorPage();
         break;
       case 1:
-        page = Placeholder();
+        page = GeneratorPage2();
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
     return LayoutBuilder( // wrap with builder 사용, Nav Rail의 label 표시 여부를 화면 크기에 따라 자동으로 결정할 수 있도록
-      builder: (context, constraints) {
-        return Scaffold(
-          body: Row(
-            children: [
-              SafeArea(
-                child: NavigationRail( // = 사이드 바
-                  extended: constraints.maxWidth >= 600,
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
-                    ),
-                  ],
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
-                    setState(() { // 리액트랑 비슷하네
-                      selectedIndex = value;
-                    });
+        builder: (context, constraints) {
+          return Scaffold(
+              body: Row(
+                children: [
+                  SafeArea(
+                    child: NavigationRail( // = 사이드 바
+                      extended: constraints.maxWidth >= 600,
+                      destinations: [
+                        NavigationRailDestination(
+                          icon: Icon(Icons.home),
+                          label: Text('Home'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.favorite),
+                          label: Text('Favorites'),
+                        ),
+                      ],
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: (value) {
+                        setState(() { // 리액트랑 비슷하네
+                          selectedIndex = value;
+                        });
 
-                    print('selected: $value');
-                  },
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: page, // selectedIndex에 따라 다른 페이지 렌더링
-                ),
-              ),
-            ],
-          )
-        );
-      }
+                        print('selected: $value');
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .primaryContainer,
+                      child: page, // selectedIndex에 따라 다른 페이지 렌더링
+                    ),
+                  ),
+                ],
+              )
+          );
+        }
     );
   }
 }
@@ -163,6 +167,46 @@ class GeneratorPage extends StatelessWidget {
     );
   }
 }
+
+class GeneratorPage2 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    print(appState.favorites);
+
+    // 이런식으로도 됨
+    // var items = appState.favorites;
+    // return ListView.builder(
+    //   itemCount: items.length,
+    //   itemBuilder: (context, index) {
+    //     return BigCard(pair: items[index]);
+    //   },
+    // );
+
+
+    if (appState.favorites.isEmpty) { // 예외 처리
+      return Center(
+        child: Text('No favorites yet.'),
+      );
+    }
+
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('You have '
+              '${appState.favorites.length} favorites:'),
+        ),
+        for (var pair in appState.favorites)
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(pair.asLowerCase),
+          ),
+      ],
+    );
+  }
+}
+
 
 // 와 refactor 기능쓰면 이거 알아서 만들어줌
 class BigCard extends StatelessWidget {
